@@ -1,0 +1,39 @@
+Hadoop vs Spark Processing speed
+
+Steps for Hadoop:
+
+1. Place the following files:
+	a) wordcount_mapper.py & wordcount_reducer.py files in /home/root folder and 
+	b) Input file named consumer_file.txt in HDFS(/user/root) through Hue browser
+
+2. Now run the below commands in the linux terminal to make script files as executables
+
+	chmod a+x wordcount_mapper.py
+	chmod a+x wordcount_reducer.py
+
+3. Remove ^M characters from the script files using the below command:
+
+	sed -i.bak 's/^M$//' infile.txt  
+        To type ^M, you need to type CTRL-V and then CTRL-M 
+
+4. Finally run the below Hadoop streaming to run the Mapreduce job:
+
+time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar -input /user/root/consumer_file.txt -output /user/root/Streamingoutput1 -file wordcount_mapper.py -file wordcount_reducer.py -mapper wordcount_mapper.py -reducer wordcount_reducer.py
+
+
+Steps for Spark:
+
+1. Enter into the Spark shell with the help of below command in the terminal:
+
+spark-shell
+
+2. As the input file is present in HDFS, execute the below lines of code one by one:
+
+val text_file = sc.textFile("s3://hivetableau/consumer_file.txt")
+val counts = text_file.flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
+counts.take(5) 
+//counts.saveAsTextFile("sparkoutput")
+
+val textFile = sc.textFile(&quot;hdfs:///user/root/consumer_file.txt&quot;)
+val counts = textFile.flatMap(line =&gt; line.split(&quot; &quot;)).map(word =&gt; (word, 1)).reduceByKey(_ + _)
+counts.saveAsTextFile(&quot;hdfs:///user/root/out&quot;)
